@@ -1,4 +1,5 @@
 
 * _inject_bundle_*.s: Derived from Dino Dai Zovi's _inject_bundle.s.
   Original source: http://trac.metasploit.com/browser/framework3/trunk/external/source/osx/x86/include/_inject_bundle.s
-  I believe these files to be BSD licensed and I license the slight modifications under the license in ../LICENSE.
+  See METASPLOIT_LICENSE for details.
+

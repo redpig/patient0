@@ -6,7 +6,7 @@ module Msf
 #
 # patient0 common module stub that is meant to be included in payloads that supply
 # patient0 pathogens and payloads.  The module is based heavily on bundleinject.rb
-# and reuses the same Stage['Payload'].
+# and reuses the same Stage['Payload'].  See the Metasploit licensing details.
 #
 ###
 module Payload::Osx::Patient0

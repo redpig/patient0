@@ -24,4 +24,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
-Note, files under ext/ may have different licensing terms
+Files under ext/ may have different terms. Please see ext/README.
+Files under extras/ are derived from metasploit source code. The changes are
+covered under the above license and the original code is covered under:
+ext/METASPLOIT_LICENSE.
