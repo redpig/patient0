@@ -99,6 +99,8 @@ This will run `syringe` and infect the Dock, SystemUIServer, and Finder unless
 a process id and path is specified. If one of the given arguments are supplied,
 only that process will be infected.
 
+(Adding support for arbitrary pathogen injection is on the short todo list.)
+
 ### Metasploit
 
 In order to use `patient0` with Metasploit, run the following build command
