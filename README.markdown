@@ -126,6 +126,9 @@ Tcl script.  Currently, that script is `web.tcl`.  It binds to port 8081
 and listens for a connection.  Any bundle or Tcl script can be injected.
 The approach is convoluted, but flexible enough (for now).
 
+See the section below on `rubella` for a bit more detail and an example
+usecase.
+
 
 ## Components
 
@@ -214,6 +217,14 @@ been received, `rubella` will spawn a ruby shell with root privileges via
 AuthorizationExecuteWithPrivileges and execute the pivot.rb code along with a
 custom payload.  It will inject this custom payload into the launchd thereby
 escalating the rubella-owner to root.
+
+The example payload is `web.tcl`.  This will bind a simple web server to
+port 8081 which allows for arbitrary shell commands to be submitted to launchd
+for execution.
+
+To demo this, infect your Dock, etc with patient0+rubella. Then open your
+system preferences (from the Dock).  Click on a pane that has a lock (like
+Accounts).  Unlock the lock.  Then browse to http://127.0.0.1:8081.
 
 ### `swineflu`
 
