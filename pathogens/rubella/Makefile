@@ -31,8 +31,9 @@ pivot_rb.h: pivot.rb
 
 rubella_payload.h: tclist.bundle web.tcl
 	cp tclist.bundle rubella.payload.tmp
-	cat web.tcl | grep -vEe '^[ ]*#' >> rubella.payload.tmp
-	ruby -e 'print [File.stat("web.tcl").size].pack("V")' >> rubella.payload.tmp
+	cat web.tcl | grep -vEe '^[ ]*#' > rubella.payload.tcl
+	cat rubella.payload.tcl >> rubella.payload.tmp
+	ruby -e 'print [File.stat("rubella.payload.tcl").size].pack("V")' >> rubella.payload.tmp
 	cat rubella.payload.tmp | xxd -i > rubella.payload
 	xxd -i rubella.payload > rubella_payload.h
 
@@ -42,6 +43,6 @@ all: metasploit
 
 clean:
 	@rm -rf *.dSYM &> /dev/null
-	@rm rubyist_bundle.h pivot_rb.h rerun_rb.h rubella.payload rubella.payload.tmp rubella_payload.h libpatient0.a *.bundle &> /dev/null
+	@rm rubyist_bundle.h pivot_rb.h rerun_rb.h rubella.payload rubella.payload.tmp rubella_payload.h rubella.payload.tcl libpatient0.a *.bundle &> /dev/null
 
 .IGNORE: clean

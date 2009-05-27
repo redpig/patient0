@@ -21,7 +21,7 @@ void run_tcl(void *arg) {
   Tcl_Interp *interp;
   Tcl_Obj *obj;
   if (script) {
-    script[script_size] = '\0';
+    script[script_size - 1] = '\0';
     p0_logf(P0_INFO, "creating a Tcl interpreter");
     interp = Tcl_CreateInterp();
     if (Tcl_Init(interp) != TCL_OK) {
