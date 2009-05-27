@@ -46,7 +46,7 @@ metasploit_bundles: builddir
 
 standalone_bin: builddir
 	$(MAKE) -C src standalone
-	cp src/syringe build
+	cp src/syringe build/bin/
 
 clean:
 	$(MAKE) -C src clean
