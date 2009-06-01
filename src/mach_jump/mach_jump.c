@@ -22,6 +22,7 @@
 #include <patient0/log.h>
 #include <patient0/mach_jump.h>
 #include <patient0/mach_jump/jump_table.h>
+#include <patient0/mach_jump/image_info.h>
 #include <patient0/mach_jump/lazy_symbol.h>
 #include <patient0/mach_jump/clobber.h>
 
@@ -112,6 +113,83 @@ bool mach_jump_framework_patch(const char *framework,
             symbol,
             framework);
     return false;
+  }
+  return true;
+}
+
+
+/* Attempts to patch the jump table of all accessible dyld_images */
+bool mach_jump_patch_loads(const char *symbol,
+                           void *replacement) {
+  void *addr = dlsym(RTLD_DEFAULT, symbol);
+  intptr_t entry = 0;
+  const uint32_t images = _dyld_image_count();
+  uint32_t image;
+
+  for (image = 0; image < images; ++image) {
+    jump_table_t table = { 0 };
+    if (!jump_table_get_indexed_table(image, &table)) {
+      p0_logf(P0_ERR, "failed to acquire jump table for '%d'", image);
+      continue;
+    }
+    p0_logf(P0_INFO, "acquired table for '%d'", image);
+    if (table.addr == 0) {
+      p0_logf(P0_WARN, "image '%d' mapped at PAGE_ZERO. Unlikely.", image);
+      continue;
+    }
+    entry = jump_table_find(&table, (intptr_t)addr);
+    if (entry == -1) {
+      p0_logf(P0_WARN, "failed to find address '%p' in table", addr);
+      continue;
+    }
+    p0_logf(P0_INFO, "found entry in '%d'", image);
+    if (!jump_table_patch(entry, replacement)) {
+      p0_logf(P0_WARN,
+              "failed to patch '%p' for '%s' in '%d'",
+              entry,
+              symbol,
+              image);
+      continue;
+    }
+    p0_logf(P0_INFO, "patched '%s' in '%d'", symbol, image);
+  }
+  return true;
+}
+
+/* Patches all images noted by dyld */
+bool mach_jump_patch_images(const char *symbol,
+                           void *replacement) {
+  void *addr = dlsym(RTLD_DEFAULT, symbol);
+  intptr_t entry = 0;
+  const uint32_t images = image_info_count();
+  uint32_t image;
+
+  for (image = 0; image < images; ++image) {
+    jump_table_t table = { 0 };
+    if (!image_info_jump_table(image, &table)) {
+      p0_logf(P0_ERR, "failed to acquire jump table for '%d'", image);
+      continue;
+    }
+    p0_logf(P0_INFO, "acquired table for '%d'", image);
+    if (table.addr == 0) {
+      p0_logf(P0_WARN, "image '%d' mapped at PAGE_ZERO. Unlikely.", image);
+      continue;
+    }
+    entry = jump_table_find(&table, (intptr_t)addr);
+    if (entry == -1) {
+      p0_logf(P0_WARN, "failed to find address '%p' in table", addr);
+      continue;
+    }
+    p0_logf(P0_INFO, "found entry in '%d'", image);
+    if (!jump_table_patch(entry, replacement)) {
+      p0_logf(P0_WARN,
+              "failed to patch '%p' for '%s' in '%d'",
+              entry,
+              symbol,
+              image);
+      continue;
+    }
+    p0_logf(P0_INFO, "patched '%s' in '%d'", symbol, image);
   }
   return true;
 }

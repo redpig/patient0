@@ -29,5 +29,6 @@ intptr_t jump_table_find(jump_table_t *table, intptr_t fn_address);
 intptr_t jump_table_find_by_symbol_address(jump_table_t *table, const char *symbol);
 bool jump_table_patch(intptr_t entry_address, void *target);
 bool jump_table_get_table(const char *framework, jump_table_t *table);
+bool jump_table_get_indexed_table(uint32_t index, jump_table_t *table);
 
 #endif  /* PATIENT0_JUMP_TABLE_H_ */

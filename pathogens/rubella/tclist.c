@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <tcl.h> /* Tcl framework. Ships with leopard :) */
+#include <mach/thread_act.h>
+
 
 #include <patient0/runtime.h>
 #include <patient0/log.h>
@@ -49,5 +51,10 @@ void run(char *code, uint32_t size) {
     p0_logf(P0_ERR, "failed to create thread");
   }
   p0_logf(P0_INFO, "deadlocking");
+  /* TODO: vm_free self as well if we can
+   *       then move it into runtime.h.  Otherwise we will still
+   *       be wasting memory.
+   */
+  thread_terminate(mach_thread_self());
   runtime_deadlock();
 }

@@ -19,5 +19,6 @@ bool mach_jump_framework_patch(const char *framework,
 bool mach_jump_framework_unpatch(const char *framework,
                                  const char *symbol,
                                  void *replacement);
-
+bool mach_jump_patch_loads(const char *symbol, void *replacement);
+bool mach_jump_patch_images(const char *symbol, void *replacement);
 #endif  /* PATIENT0_MACH_JUMP_H_ */

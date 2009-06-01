@@ -253,8 +253,10 @@ package installation.
 - determine if runner or Installer is calling AuthorizationCopyRights
 - write real tests
 - fully comment all libpatient0 functions (doxygen would be a bonus)
+- add an injectable debugger thread (base a simple debugger on pivot.rb)
+- add an injectable local process stats thread
 - add more file types to patient0 and clean up the code
-- determine how Software Update is invoked from the menu and intercept it.
+- determine how Software Update is invoked from the menu and intercept it: LaunchApplicationViaLaunchD, _LSLaunchApplication< _LSOpenItemsWithHandler_CFDictionaryApplier, LSOpenFromURLSpec
 - integrate into mac-meterpreter.
 - look into passing a custom bootstrap port/namespace to have access to
   exception handler ports.

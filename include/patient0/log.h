@@ -10,6 +10,7 @@
 #include <stdlib.h>
 
 #define P0_INFO 1
+#define P0_WARN 64
 #define P0_ERR 128
 #define P0_FATAL 256
 

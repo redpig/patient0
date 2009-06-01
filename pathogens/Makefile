@@ -1,6 +1,6 @@
-PATHOGENS=rubella
+PATHOGENS=rubella swineflu alzheimers
 
 metasploit:
-	make -C $(PATOGENS)
+	make -C $(PATHOGENS)
 
 all: metasploit

@@ -2,9 +2,9 @@ include ../Makefile.inc
 
 .IGNORE: clean
 
-LIBPATIENT0_SOURCES=spawn.c infect.c process.c mach_jump/libdupe.c mach_jump/clobber.c mach_jump/mach_jump.c mach_jump/jump_table.c mach_jump/lazy_symbol.c runtime.c log.c
+LIBPATIENT0_SOURCES=spawn.c infect.c process.c mach_jump/image_info.c mach_jump/libdupe.c mach_jump/clobber.c mach_jump/mach_jump.c mach_jump/jump_table.c mach_jump/lazy_symbol.c runtime.c log.c
 
-LIBPATIENT0_OBJS=spawn.o infect.o process.o mach_jump/libdupe.o mach_jump/clobber.o mach_jump/mach_jump.o mach_jump/jump_table.o mach_jump/lazy_symbol.o runtime.o log.o
+LIBPATIENT0_OBJS=spawn.o infect.o process.o mach_jump/image_info.o mach_jump/libdupe.o mach_jump/clobber.o mach_jump/mach_jump.o mach_jump/jump_table.o mach_jump/lazy_symbol.o runtime.o log.o
 
 libpatient0.a: inject_bundle.h $(LIBPATIENT0_OBJS)
 	libtool -static -o libpatient0.a $(LIBPATIENT0_OBJS)

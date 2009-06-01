@@ -8,6 +8,7 @@
 #include <mach/mach.h>
 #include <mach/mach_types.h>
 #include <mach/i386/thread_status.h>
+#include <mach/thread_act.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -18,6 +19,10 @@
 #include <sys/socket.h>
 
 #include <patient0/log.h>
+
+void runtime_terminate() {
+  thread_terminate(mach_thread_self());
+}
 
 void runtime_deadlock() {
   pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;

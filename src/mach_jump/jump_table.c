@@ -84,6 +84,48 @@ bool jump_table_get_table(const char *framework, jump_table_t *table) {
 }
 
 
+/* jump_table_get_indexed_table
+ * Returns the jump table (symbol stubs) used by a given, loaded mach header.
+ * This allows for symbol stub patching when calls are made from functions
+ * resident in a loaded shared library.
+ */
+bool jump_table_get_indexed_table(uint32_t index, jump_table_t *table) {
+  const struct mach_header *header;
+  unsigned long size = 0;
+
+  if (index >= _dyld_image_count()) {
+    p0_logf(P0_ERR, "image out of range: %d", index);
+    return false;
+  }
+  header = _dyld_get_image_header(index);
+  if (header == NULL) {
+    p0_logf(P0_WARN, "image mapped at 0x0");
+  }
+  table->addr = (intptr_t) getsectdatafromheader(header,
+                                                 "__IMPORT",
+                                                 "__jump_table",
+                                                 (unsigned long *)
+                                                 &table->size);
+  p0_logf(P0_INFO, "header: %p addr %p", header, table->addr);
+  if (table->addr == 0) {
+    p0_logf(P0_ERR, "jump table mapped at 0x0: bailing");
+    return false;
+  }
+  /* Make sure we can patch the table */
+  if (vm_protect(mach_task_self(),
+                 (vm_address_t)table->addr,
+                 table->size,
+                 false,
+                 VM_PROT_ALL) != KERN_SUCCESS) {
+    /* we will keep on truckin' though. just in case! */
+    p0_logf(P0_WARN, "failed to change the protections on the jump table");
+  }
+  return true;
+}
+
+
+
+
 /* jmp_table_find (and jmp_table_find_by_symbol)
  * Takes in a symbol and attempts to resolve the symbol and find its
  * lazy resolution address in the executable images __jump_table
@@ -133,10 +175,10 @@ intptr_t jump_table_find(jump_table_t *table, intptr_t func) {
     }
     /* make the target address absolute */
     jmps_to = cursor->target +  ((intptr_t)(cursor) + sizeof(jmp_entry_t));
-    p0_logf(P0_INFO, "%p: %hhx %x %x\n", cursor,
-                               cursor->opcode,
-                               (uint32_t) cursor->target,
-                               (uint32_t)jmps_to);
+    p0_logf(P0_INFO, "%p: %hhx %x -> %x\n", cursor,
+                                            cursor->opcode,
+                                            (uint32_t)cursor->target,
+                                            (uint32_t)jmps_to);
     if (jmps_to == (intptr_t)func) {
       return (intptr_t) cursor;
     }

